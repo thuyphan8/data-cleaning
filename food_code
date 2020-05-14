@@ -47,9 +47,27 @@ for index, row in df_subset.iterrows():
     if re.match(pattern,row['GPA']):                            
         df_subset.loc[index, 'GPA'] = 'nan'
         
+#categorize gender
+cnt= 0
+for row in df_subset['Gender']:
+    try:
+        int(row)
+        if row == 1:
+            df_subset.loc[cnt, 'Gender'] = 'Female'
+        else:
+            df_subset.loc[cnt, 'Gender'] = 'Male'
+    except ValueError:
+        pass
+    cnt += 1
 #Outliers check
 df_subset.boxplot(column='calories_scone', grid=True)
 plt.show()
 print(df_subset.describe())
+
+#Pivot table
+col_list = ['calories_chicken', 'calories_scone', 'calories_tortilla'
+            , 'calories_turkey', 'calories_waffle']
+new_df_subset = df_subset.pivot_table(values = col_list, index = 'GPA', 
+                                      columns = 'Gender', aggfunc =np.mean)
 
 #Write out cleaned data-csv file
