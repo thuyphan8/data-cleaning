@@ -1,0 +1,55 @@
+#Import csv file 
+import numpy as np 
+import pandas as pd 
+
+df = pd.read_csv('food_coded.csv')    #include filepath if file is not in the same directory path with this python file path
+#Detect missing values
+print(df.info())      #check missing values, data types
+print(df.columns)     #check column names, formats
+print(df.head(10))    #check the first 10 rows 
+print(describe())     #descriptive stats, screen for outliers, potential bad data
+
+#create a data subset for food calories consumed by Gender and GPA
+df_subset = pd.concat([df['GPA'], df['Gender'], df['weight'],
+                       df['breakfast'], df['calories_chicken'], 
+                       df['calories_scone'], df['tortilla_calories'], 
+                       df['turkey_calories'], df['waffle_calories']],axis = 1)
+
+#Standardize column names
+columns = list(df_subset.columns)
+col_name = []
+for key in columns:    
+    if re.search('[\w]*calories$', key):                
+        key = key.split('_')
+        key = key[1] + '_' +key[0]
+        col_name.append(key)
+    else:
+        col_name.append(key)
+df_subset.columns = col_name
+
+#Anomalies
+#Inspect columns: missing values, anomalies, object type, rounding
+pattern = re.compile("\D")                                     #form a pattern that string expression matches no digits
+df_subset = df_subset.astype(str)                              #convert data type to string
+
+for index, row in df_subset.iterrows():                        #for loop to see if any value from columns matches the pattern
+    for col in df_subset:                       
+        df_subset[col] = df_subset[col].str.split(' ').str[0].str.strip()       #strip everything after space delimiter
+        if re.match(pattern_1,row[col]):                       #if matches, replace with nan     
+            df_subset.loc[index, col] = 'nan'
+            
+#Impute for missing values          
+for col in df_subset:                                         
+    df_subset[col] =  df_subset[col].astype(float)            #convert data type to float
+    df_subset[col] = df_subset[col].fillna(np.mean(df_subset[col]))   #since values are numerical, fill na with mean value from each column
+    df_subset[col] = round(df_subset[col], 2)                 #round all the values to 2 decimals
+for index, row in df_subset.iterrows():                         
+    if re.match(pattern,row['GPA']):                            
+        df_subset.loc[index, 'GPA'] = 'nan'
+        
+#Outliers check
+df_subset.boxplot(column='calories_scone', grid=True)
+plt.show()
+print(df_subset.describe())
+
+#Write out cleaned data-csv file
