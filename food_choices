@@ -11,21 +11,21 @@ print(describe())     #descriptive stats, screen for outliers, potential bad dat
 
 #create a data subset for food calories consumed by Gender and GPA
 df_subset = pd.concat([df['GPA'], df['Gender'], df['weight'],
-                       df['breakfast'], df['calories_chicken'], 
-                       df['calories_scone'], df['tortilla_calories'], 
-                       df['turkey_calories'], df['waffle_calories']],axis = 1)
+                       df['calories_chicken'], df['calories_scone'], 
+                       df['tortilla_calories'], df['turkey_calories'], 
+                       df['waffle_calories']],axis = 1)
 
 #Standardize column names
 columns = list(df_subset.columns)
 col_name = []
 for key in columns:    
-    if re.search('[\w]*calories$', key):                
-        key = key.split('_')
-        key = key[1] + '_' +key[0]
+    if re.search('[\w]*calories$', key):                      #search for string that has character and with calories ending          
+        key = key.split('_')                                  #split the character with delimiter
+        key = key[1] + '_' +key[0]                            #switch places within a string    
         col_name.append(key)
     else:
         col_name.append(key)
-df_subset.columns = col_name
+df_subset.columns = col_name                                  #set new column name
 
 #Anomalies
 #Inspect columns: missing values, anomalies, object type, rounding
@@ -43,9 +43,8 @@ for col in df_subset:
     df_subset[col] =  df_subset[col].astype(float)            #convert data type to float
     df_subset[col] = df_subset[col].fillna(np.mean(df_subset[col]))   #since values are numerical, fill na with mean value from each column
     df_subset[col] = round(df_subset[col], 2)                 #round all the values to 2 decimals
-for index, row in df_subset.iterrows():                         
-    if re.match(pattern,row['GPA']):                            
-        df_subset.loc[index, 'GPA'] = 'nan'
+
+df_subset.loc[:,'weight':] = round(df_subset.loc[:,'weight':])        #slicing dataframe to round up calories, weight
         
 #categorize gender
 cnt= 0
@@ -71,3 +70,4 @@ new_df_subset = df_subset.pivot_table(values = col_list, index = 'GPA',
                                       columns = 'Gender', aggfunc =np.mean)
 
 #Write out cleaned data-csv file
+df_subset.to_csv('new_food_code.csv', index=False)
